@@ -1,0 +1,431 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MONEYWISE | Smart Expense Tracker</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#0d0b14;color:#fff;
+ font-family:Arial,sans-serif;
+}
+header{
+ padding:22px 7%;display:flex;justify-content:space-between;
+ align-items:center;border-bottom:1px solid #30283d;
+}
+.logo{font-size:25px;font-weight:900;color:#bd91ff}
+.logo span{color:white}
+header small{color:#aaa}
+main{max-width:1150px;margin:35px auto;padding:0 20px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+h1{margin:0;font-size:29px}
+p{color:#aaa1b6}
+button{
+ background:#965ee8;color:white;border:0;padding:13px 19px;
+ border-radius:10px;cursor:pointer;font-weight:bold;
+}
+button:hover{background:#b17cff}
+.stats{
+ display:grid;grid-template-columns:repeat(3,1fr);
+ gap:18px;margin:28px 0;
+}
+.card,.panel{
+ background:#191622;border:1px solid #30283d;
+ border-radius:17px;padding:23px;
+}
+.card small{color:#aaa1b6}
+.amount{font-size:30px;font-weight:bold;margin:15px 0 7px}
+.green{color:#54d6a0}
+.red{color:#ff8197}
+.purple{color:#c29aff}
+.layout{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.panel h2{font-size:19px;margin:0 0 20px}
+.toolbar{display:flex;gap:10px;margin-bottom:15px}
+input,select{
+ background:#100e18;color:white;border:1px solid #393044;
+ padding:12px;border-radius:9px;min-width:0;
+}
+#search{flex:1}
+.transaction{
+ display:flex;justify-content:space-between;align-items:center;
+ padding:15px 0;border-bottom:1px solid #30283d;gap:10px;
+}
+.tx-sub{font-size:12px;color:#aaa;margin-top:5px}
+.tx-right{text-align:right;white-space:nowrap}
+.delete{background:transparent;color:#ff8197;padding:5px}
+.category{display:flex;justify-content:space-between;margin:18px 0 8px;font-size:13px}
+.bar{height:9px;background:#30283d;border-radius:20px;overflow:hidden}
+.fill{height:100%;background:linear-gradient(90deg,#7840ca,#c29aff)}
+.empty{text-align:center;color:#aaa;padding:25px}
+.modal{
+ position:fixed;inset:0;background:#000b;display:none;
+ align-items:center;justify-content:center;padding:15px;
+}
+.modal-box{
+ width:100%;max-width:420px;background:#191622;
+ border:1px solid #49365f;border-radius:18px;padding:25px;
+}
+.modal-box input,.modal-box select{width:100%;margin:8px 0 15px}
+.modal-box label{font-size:13px;color:#c9c0d5}
+.actions{display:flex;gap:10px}
+.actions button{flex:1}
+footer{text-align:center;padding:30px;color:#81788e}
+@media(max-width:700px){
+ .stats{grid-template-columns:1fr}
+ .layout{grid-template-columns:1fr}
+ h1{font-size:23px}
+ .toolbar{flex-wrap:wrap}
+}
+</style>
+</head>
+
+<body>
+<header>
+ <div class="logo">MONEY<span>WISE.</span></div>
+ <small>SMART FINANCE DASHBOARD</small>
+ <small>Gaurav Dwivedi</small>
+</header>
+
+<main>
+ <div class="top">
+  <div>
+   <h1>Welcome Back 👋</h1>
+   <p>Manage your money. Control your future.</p>
+  </div>
+  <button onclick="openModal()">+ Add Transaction</button>
+  <button onclick="window.print()">Download PDF Report</button>
+ </div>
+<section class="panel" style="margin:25px 0;">
+    <h2>About MONEYWISE</h2>
+    <p>
+        MONEYWISE is a smart personal expense tracker
+        designed to help users manage their money easily.
+    </p>
+
+    <h3>Key Features</h3>
+    <ul>
+        <li>Track daily income and expenses</li>
+        <li>View total balance instantly</li>
+        <li>Category-wise expense breakdown</li>
+        <li>Interactive expense pie chart</li>
+        <li>Search and filter transactions</li>
+        <li>Download PDF reports</li>
+        <li>Save transactions in your browser</li>
+    </ul>
+</section>
+ <section class="stats">
+  <div class="card">
+   <small>Total Balance</small>
+   <div class="amount purple" id="balance">₹0</div>
+   <small>Your current net balance</small>
+  </div>
+  <div class="card">
+   <small>Total Income</small>
+   <div class="amount green" id="income">₹0</div>
+   <small>Total money received</small>
+  </div>
+  <div class="card">
+   <small>Total Expenses</small>
+   <div class="amount red" id="expense">₹0</div>
+   <small>Total money spent</small>
+  </div>
+ </section>
+
+ <section class="layout">
+  <div class="panel">
+   <h2>Recent Transactions</h2>
+   <div class="toolbar">
+    <input id="search" placeholder="Search..." oninput="render()">
+    <select id="filter" onchange="render()">
+     <option value="all">All</option>
+     <option value="income">Income</option>
+     <option value="expense">Expense</option>
+    </select>
+   </div>
+   <div id="transactions"></div>
+  </div>
+
+  <div class="panel">
+   <h2>Expense Breakdown</h2> 
+<div id="pieChart" style="width:180px;height:180px;border-radius:50%;margin:20px auto;background:conic-gradient(#a78bfa 0% 40%,#38bdf8 40% 70%,#f472b6 70% 100%);"></div>  
+   <div id="breakdown"></div>
+   <div style="margin-top:25px;padding:17px;background:#281d38;border-radius:12px">
+    <small style="color:#bd91ff">SMART MONEY TIP</small>
+    <p>Track every expense. Small savings create big results!</p>
+   </div>
+  </div>
+  <div class="panel" style="margin-top:20px;">
+    <h2>Monthly Analytics</h2>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:15px;">
+
+        <div style="background:#281d38;padding:15px;border-radius:12px;">
+            <small>Monthly Income</small>
+            <h2 id="monthlyIncome">₹0</h2>
+        </div>
+
+        <div style="background:#281d38;padding:15px;border-radius:12px;">
+            <small>Monthly Expense</small>
+            <h2 id="monthlyExpense">₹0</h2>
+        </div>
+
+        <div style="background:#281d38;padding:15px;border-radius:12px;">
+            <small>Monthly Savings</small>
+            <h2 id="monthlySavings">₹0</h2>
+        </div>
+
+    </div>
+</div>
+ </section>
+ <div style="text-align:center;padding:25px;margin-top:20px;color:#bd91ff;">
+    <p style="font-size:12px;color:#aaa;">DESIGNED & DEVELOPED BY</p>
+    <h2 style="margin:5px;color:#ffffff;">Gaurav Dwivedi</h2>
+    <p style="font-size:13px;color:#aaa;">AI/ML Engineering Student</p>
+    <p style="font-size:11px;color:#777;">© 2026 MONEYWISE</p>
+</div>
+</main>
+
+<div class="modal" id="modal">
+ <div class="modal-box">
+  <h2>Add Transaction</h2>
+  <form id="form">
+   <label>Transaction Name</label>
+   <input id="name" placeholder="e.g. Shopping" required maxlength="60">
+
+   <label>Amount (₹)</label>
+   <input id="amount" type="number" min="0.01" step="0.01" required>
+
+   <label>Type</label>
+   <select id="type">
+    <option value="expense">Expense</option>
+    <option value="income">Income</option>
+   </select>
+
+   <label>Category</label>
+   <select id="category">
+    <option>Food</option>
+    <option>Shopping</option>
+    <option>Travel</option>
+    <option>Education</option>
+    <option>Salary</option>
+    <option>Other</option>
+   </select>
+
+   <label>Date</label>
+   <input id="date" type="date" required>
+
+   <div class="actions">
+    <button type="submit">Save Transaction</button>
+    <button type="button" onclick="closeModal()" style="background:#393244">Cancel</button>
+   </div>
+  </form>
+ </div>
+</div>
+
+<footer>MONEYWISE © 2026 | SMART FINANCE</footer>
+
+<script>
+const KEY="moneywise_data";
+const samples=[
+ {id:1,name:"Pocket Money",amount:5000,type:"income",category:"Other",date:"2026-11-01"},
+ {id:2,name:"College Canteen",amount:250,type:"expense",category:"Food",date:"2026-11-03"},
+ {id:3,name:"Bus Travel",amount:150,type:"expense",category:"Travel",date:"2026-11-05"},
+ {id:4,name:"Study Materials",amount:600,type:"expense",category:"Education",date:"2026-11-08"}
+];
+
+let transactions;
+try{
+ transactions=JSON.parse(localStorage.getItem(KEY));
+ if(!Array.isArray(transactions)) transactions=samples;
+}catch(e){transactions=samples;}
+
+function money(n){
+ return "₹"+Number(n).toLocaleString("en-IN",{maximumFractionDigits:2});
+}
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(transactions));
+}
+
+function render(){
+ let income=0,expense=0;
+ transactions.forEach(t=>{
+  if(t.type==="income")income+=Number(t.amount);
+  else expense+=Number(t.amount);
+ });
+ let currentMonth = new Date().toISOString().slice(0, 7);
+
+let monthlyIncome = 0;
+let monthlyExpense = 0;
+
+transactions.forEach(t => {
+    if (t.date && t.date.startsWith(currentMonth)) {
+        if (t.type === "income") {
+            monthlyIncome += Number(t.amount);
+        } else {
+            monthlyExpense += Number(t.amount);
+        }
+    }
+});
+
+document.getElementById("monthlyIncome").textContent = money(monthlyIncome);
+
+document.getElementById("monthlyExpense").textContent = money(monthlyExpense);
+
+document.getElementById("monthlySavings").textContent = money(monthlyIncome - monthlyExpense);
+
+ document.getElementById("balance").textContent=money(income-expense);
+ document.getElementById("income").textContent=money(income);
+ document.getElementById("expense").textContent=money(expense);
+
+ let query=document.getElementById("search").value.toLowerCase();
+ let filter=document.getElementById("filter").value;
+
+ let list=transactions.filter(t=>
+  t.name.toLowerCase().includes(query)&&
+  (filter==="all"||t.type===filter)
+ ).sort((a,b)=>b.date.localeCompare(a.date));
+
+ let area=document.getElementById("transactions");
+ area.innerHTML="";
+
+ if(!list.length){
+  area.innerHTML='<div class="empty">No transactions found</div>';
+ }
+
+ list.forEach(t=>{
+  let row=document.createElement("div");
+  row.className="transaction";
+
+  let left=document.createElement("div");
+  let title=document.createElement("b");
+  title.textContent=t.name;
+
+  let sub=document.createElement("div");
+  sub.className="tx-sub";
+  sub.textContent=t.category+" • "+t.date;
+  left.append(title,sub);
+
+  let right=document.createElement("div");
+  right.className="tx-right";
+
+  let value=document.createElement("div");
+  value.className=t.type==="income"?"green":"red";
+  value.textContent=(t.type==="income"?"+":"-")+money(t.amount);
+
+  let del=document.createElement("button");
+  del.className="delete";
+  del.textContent="Delete";
+  del.onclick=()=>removeTransaction(t.id);
+
+  right.append(value,del);
+  row.append(left,right);
+  area.append(row);
+ });
+
+ let categories={};
+ transactions.filter(t=>t.type==="expense").forEach(t=>{
+  categories[t.category]=(categories[t.category]||0)+Number(t.amount);
+ });
+
+ let total=Object.values(categories).reduce((a,b)=>a+b,0);
+ let box=document.getElementById("breakdown");
+ box.innerHTML="";
+let chart = document.getElementById("pieChart");
+
+if (chart) {
+    let colors = ["#a78bfa", "#38bdf8", "#f472b6", "#fbbf24", "#34d399", "#fb7185"];
+    let start = 0;
+
+    let parts = Object.values(categories);
+
+    if (total > 0) {
+        let gradient = parts.map((amount, i) => {
+            let end = start + (amount / total) * 100;
+            let part = `${colors[i % colors.length]} ${start}% ${end}%`;
+            start = end;
+            return part;
+        });
+
+        chart.style.background = `conic-gradient(${gradient.join(",")})`;
+    } else {
+        chart.style.background = "#333333";
+    }
+}
+ if(!total){
+  box.innerHTML='<div class="empty">No expenses yet</div>';
+ }
+
+ Object.entries(categories).sort((a,b)=>b[1]-a[1]).forEach(([name,value])=>{
+  let wrap=document.createElement("div");
+  let label=document.createElement("div");
+  label.className="category";
+
+  let a=document.createElement("span");
+  a.textContent=name;
+  let b=document.createElement("span");
+  b.textContent=money(value);
+  label.append(a,b);
+
+  let bar=document.createElement("div");
+  bar.className="bar";
+  let fill=document.createElement("div");
+  fill.className="fill";
+  fill.style.width=(value/total*100)+"%";
+  bar.append(fill);
+
+  wrap.append(label,bar);
+  box.append(wrap);
+ });
+}
+
+function openModal(){
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("date").value=new Date().toISOString().slice(0,10);
+}
+
+function closeModal(){
+ document.getElementById("modal").style.display="none";
+}
+
+document.getElementById("form").addEventListener("submit",function(e){
+ e.preventDefault();
+
+ let name=document.getElementById("name").value.trim();
+ let amount=Number(document.getElementById("amount").value);
+ let date=document.getElementById("date").value;
+
+ if(!name||!Number.isFinite(amount)||amount<=0||!date){
+  alert("Enter valid details");
+  return;
+ }
+
+ transactions.push({
+  id:Date.now(),
+  name:name,
+  amount:amount,
+  type:document.getElementById("type").value,
+  category:document.getElementById("category").value,
+  date:date
+ });
+
+ save();
+ render();
+ this.reset();
+ closeModal();
+});
+
+function removeTransaction(id){
+ if(confirm("Delete this transaction?")){
+  transactions=transactions.filter(t=>t.id!==id);
+  save();
+  render();
+ }
+}
+
+render();
+</script>
+</body>
+</html>
